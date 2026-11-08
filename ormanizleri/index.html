@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#103d2b" />
+  <meta name="description" content="Orman İzleri ile fotoğrafını yükle, hayvanını keşfet!" />
+  <title>Orman İzleri — Hayvan Tahmin Oyunu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <!-- Teachable Machine Pose 0.8.6 peer dependency: @tensorflow/tfjs 1.3.1. -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+  <!-- Pose 0.8.6 tf.fromPixels çağırıyor; tfjs 1.3.1 bunu tf.browser altında sunuyor. -->
+  <script>
+    if (window.tf && !window.tf.fromPixels && window.tf.browser && window.tf.browser.fromPixels) {
+      window.tf.fromPixels = function (...args) { return window.tf.browser.fromPixels(...args); };
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+</head>
+<body>
+  <div class="forest-glow glow-one"></div>
+  <div class="forest-glow glow-two"></div>
+  <div class="leaf leaf-a">✦</div>
+  <div class="leaf leaf-b">❧</div>
+  <div class="leaf leaf-c">✦</div>
+
+  <main class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Orman İzleri ana sayfa">
+        <span class="brand-mark">🐾</span>
+        <span><strong>orman</strong> izleri</span>
+      </a>
+      <div class="model-pill"><span class="status-dot"></span> keşif modu açık</div>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div class="eyebrow"><span>🌿</span> Doğanın küçük sırlarını keşfet</div>
+      <h1 id="page-title">Bu fotoğrafta<br /><em>hangi hayvan</em> saklanıyor?</h1>
+      <p class="hero-copy">Bir fotoğraf seç, orman rehberimiz izleri takip edip tahminini söylesin.</p>
+    </section>
+
+    <section class="game-layout" aria-label="Hayvan tahmini">
+      <div class="upload-card card">
+        <div class="card-heading">
+          <div>
+            <span class="step-number">01</span>
+            <h2>İzini bırak</h2>
+          </div>
+          <span class="tiny-icon">📸</span>
+        </div>
+        <label class="drop-zone" id="dropZone" for="fileInput">
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" />
+          <div class="upload-art" id="uploadArt"><span>🦉</span><span>🐿️</span><span>🦊</span></div>
+          <strong id="dropTitle">Bir hayvan fotoğrafı seç</strong>
+          <span id="dropHint">Sürükle bırak veya buraya dokun</span>
+          <span class="file-note">JPG, PNG veya WEBP · en fazla 10 MB</span>
+        </label>
+        <div class="preview-wrap" id="previewWrap" hidden>
+          <img id="previewImage" alt="Analiz edilecek hayvan fotoğrafı önizlemesi" />
+          <button class="change-button" type="button" id="changeButton">Fotoğrafı değiştir</button>
+        </div>
+        <p class="error-message" id="errorMessage" role="alert" hidden></p>
+        <button class="analyze-button" id="analyzeButton" type="button" disabled>
+          <span class="button-spark">✦</span>
+          <span id="buttonLabel">Tahmin et</span>
+          <span class="button-arrow">→</span>
+        </button>
+      </div>
+
+      <div class="result-card card" id="resultCard" aria-live="polite">
+        <div class="card-heading result-heading">
+          <div>
+            <span class="step-number">02</span>
+            <h2>Orman rehberi</h2>
+          </div>
+          <span class="tiny-icon">🔎</span>
+        </div>
+        <div class="result-empty" id="resultEmpty">
+          <div class="binoculars">🔭</div>
+          <strong>İzleri bekliyorum...</strong>
+          <span>Fotoğrafını yüklediğinde<br />tahmin burada görünecek.</span>
+        </div>
+        <div class="loading-state" id="loadingState" hidden>
+          <div class="loader-orbit"><span></span></div>
+          <strong id="loadingTitle">Orman taranıyor</strong>
+          <span id="loadingText">Model hazırlanıyor...</span>
+        </div>
+        <div class="result-content" id="resultContent" hidden>
+          <div class="result-badge">TAHMİNİMİZ</div>
+          <div class="animal-emoji" id="animalEmoji">🦊</div>
+          <h3 id="animalName">Tilki</h3>
+          <p class="result-caption">Bu izler <strong id="animalNameSmall">Tilki</strong>’ye ait olabilir!</p>
+          <div class="confidence-row"><span>Güven oranı</span><strong id="confidenceValue">0%</strong></div>
+          <div class="confidence-track"><span id="confidenceBar"></span></div>
+          <button class="try-again" type="button" id="tryAgainButton">Başka bir fotoğraf dene <span>↗</span></button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer"><span>🌱</span> Kendi eğittiğin modelle çalışır · Fotoğrafların cihazından çıkmaz <span>🌱</span></footer>
+  </main>
+  <script src="/script.js"></script>
+</body>
+</html>
